@@ -11,7 +11,7 @@ import {TableRow} from '@shared/components/tables/types/table-row.class';
 import {} from '@shared/components/forms/';
 import {LigatabelleErgebnisDO} from '../../../wettkampf/types/wettkampf-ergebnis-do.class';
 import {LigatabelleErgebnisDTO} from '../../../wettkampf/types/datatransfer/wettkampf-ergebnis-dto.class';
-// import {NotificationService} from '@shared/services';
+//import {NotificationService} from '@shared/services';
 import { RouterModule, Routes } from '@angular/router';
 import {isUndefined} from '@shared/functions';
 import {Subscription} from 'rxjs';
@@ -23,7 +23,6 @@ import {
   NotificationType,
   NotificationUserAction
 } from '@shared/services/notification';
-import {forEach} from '@angular/router/src/utils/collection';
 
 const ID_PATH_PARAM = 'id';
 
@@ -46,13 +45,13 @@ export class LigatabelleComponent extends CommonComponent implements OnInit {
   public selectedDTOs: VeranstaltungDO[];
   public multipleSelections = true;
   public veranstaltungen: VeranstaltungDO[];
-  public zwVeranstaltung: VeranstaltungDTO;
+  public zwVeranstaltung: VeranstaltungDO[];
   public loadingVeranstaltungen = true;
   public loadingLigatabelle = false;
   public rowsLigatabelle: TableRow[];
   private tableContent: Array<LigatabelleErgebnisDO> = [];
   private remainingLigatabelleRequests: number;
-  public providedID: number;
+  public providedID : number;
 
 
   constructor(private router: Router,
@@ -70,33 +69,32 @@ export class LigatabelleComponent extends CommonComponent implements OnInit {
     console.log('Bin im Liga');
     this.loadVeranstaltungen();
     this.loading = true;
-    this.providedID = undefined;
     this.notificationService.discardNotification();
     this.route.params.subscribe((params) => {
       if (!isUndefined(params[ID_PATH_PARAM])) {
         this.providedID = params[ID_PATH_PARAM];
         console.log(this.providedID);
-
-
-      /*
-        this.veranstaltungsDataProvider.findById(this.providedID)
-          .then((response: BogenligaResponse<VeranstaltungDTO>) => {this.handleGivenVeranstaltung(response); console.log(response.payload);});
-        console.log(this.zwVeranstaltung);
-        let zVeranstaltung:  VeranstaltungDTO[];
-        zVeranstaltung = [];
-        zVeranstaltung.push(this.zwVeranstaltung);
-        this.onSelect(zVeranstaltung);
-
-
-       */
-      } else {
-        console.log('no params');
+        boolean : let found;
+        found = false;
+        int : let i;
+        for(i = 0; i < this.veranstaltungen.length && !found ; i++){
+          if (this.veranstaltungen[i].ligaId == this.providedID){
+            found = true;
+            this.zwVeranstaltung = [];
+            this.zwVeranstaltung.push(this.veranstaltungen[i]);
+            //console.log(this.zwVeranstaltung[0]);
+            this.onSelect(this.zwVeranstaltung);
+          }else{
+            console.log("nothing found!");
+          }
+        }
       }
-
-    } );
+      else {
+        console.log("no params");
+      }
+    });
     console.log(this.providedID);
   }
-
 
   // when a Veranstaltung gets selected from the list
   // load LigaTabelle
@@ -105,15 +103,15 @@ export class LigatabelleComponent extends CommonComponent implements OnInit {
     buttonVisibility.style.display = 'block';
     this.selectedDTOs = [];
     this.selectedDTOs = $event;
-    if (!!this.selectedDTOs && this.selectedDTOs.length > 0) {
-      this.selectedVeranstaltungId = this.selectedDTOs[0].id;
-      this.selectedVeranstaltungName = this.selectedDTOs[0].name;
-    }
     this.changeVeranstaltung();
   }
 
   // Changes the displayed Veranstaltung with the current selected one from selectedDTOs.
-  private changeVeranstaltung(): void {
+  private changeVeranstaltung() : void {
+    if (!!this.selectedDTOs && this.selectedDTOs.length > 0) {
+      this.selectedVeranstaltungId = this.selectedDTOs[0].id;
+      this.selectedVeranstaltungName = this.selectedDTOs[0].name;
+    }
     this.rowsLigatabelle = [];
     this.tableContent = [];
     if (this.selectedVeranstaltungId != null) {

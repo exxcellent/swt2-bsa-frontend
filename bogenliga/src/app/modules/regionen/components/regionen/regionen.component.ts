@@ -13,8 +13,9 @@ import {LigaDTO} from '@verwaltung/types/datatransfer/liga-dto.class';
 import {VereinDTO} from '@verwaltung/types/datatransfer/verein-dto.class';
 import {RoleVersionedDataObject} from '@verwaltung/services/models/roles-versioned-data-object.class';
 import {Router} from '@angular/router';
-// import {LigatabelleComponent} from '../../../ligatabelle/components/ligatabelle/ligatabelle.component';
-// import {VeranstaltungDO} from '@verwaltung/types/veranstaltung-do.class';
+//import {LigatabelleComponent} from '../../../ligatabelle/components/ligatabelle/ligatabelle.component';
+//import {VeranstaltungDO} from '@verwaltung/types/veranstaltung-do.class';
+
 
 const chartMaxSizeMultiplikator = 0.8;
 const chartDetailsSizeMultiplikator = 0.5;
@@ -73,7 +74,7 @@ export class RegionenComponent implements OnInit {
     if (currentRegion == null) {
       color = 'grey';
     } else if (currentRegion.regionTyp === 'BUNDESVERBAND') {
-      color = 'orange';
+      color = 'yellow';
     } else if (currentRegion.regionTyp === 'LANDESVERBAND') {
       color = 'red';
     } else if (currentRegion.regionTyp === 'BEZIRK') {
@@ -105,23 +106,26 @@ export class RegionenComponent implements OnInit {
 
     myChart
       .data(JSON.parse(data))
-      .width(window.innerWidth * chartDetailsSizeMultiplikator)
-      .height(window.innerHeight * chartDetailsSizeMultiplikator)
+      .width(window.innerWidth * chartMaxSizeMultiplikator)
+      .height(window.innerHeight * chartMaxSizeMultiplikator)
       .size('size')
       .color('color')
       .onNodeClick((node) => {
         // what should happen after clicking the node
         myChart.focusOnNode(node);
 
-        myChart.width(window.innerWidth * chartDetailsSizeMultiplikator);
-        myChart.height(window.innerHeight * chartDetailsSizeMultiplikator);
-        // }
+        if (node == null) {
+          myChart.width(window.innerWidth * chartMaxSizeMultiplikator);
+          myChart.height(window.innerHeight * chartMaxSizeMultiplikator);
+        } else {
+          myChart.width(window.innerWidth * chartDetailsSizeMultiplikator);
+          myChart.height(window.innerHeight * chartDetailsSizeMultiplikator);
+        }
         this.showDetails(node);
 
         })
       (this.myDiv.nativeElement);
 
-    console.log(myChart.showLabel);
 
     // for automatic resizing
     window.addEventListener('resize', (func) => {
@@ -132,8 +136,8 @@ export class RegionenComponent implements OnInit {
           .height(window.innerHeight * chartDetailsSizeMultiplikator);
       } else {
         myChart
-          .width(window.innerWidth * chartDetailsSizeMultiplikator)
-          .height(window.innerHeight * chartDetailsSizeMultiplikator);
+          .width(window.innerWidth * chartMaxSizeMultiplikator)
+          .height(window.innerHeight * chartMaxSizeMultiplikator);
       }
     });
   }
@@ -197,8 +201,7 @@ export class RegionenComponent implements OnInit {
     this.ligen = [];
     response.payload.forEach((responseItem) =>  {
        if (responseItem.regionId === this.currentRegionDO.id) {
-         console.log(responseItem);
-         this.ligen.push(responseItem);
+        this.ligen.push(responseItem);
       }
     });
 
@@ -207,16 +210,14 @@ export class RegionenComponent implements OnInit {
 
   public onSelectVerein(event: VereinDO): void {
     this.selectedVereinDO = event[0];
-    console.log(this.selectedVereinDO);
-    this.router.navigateByUrl('/vereine/' + this.selectedVereinDO.id);
+    this.router.navigateByUrl('/verwaltung/vereine/' + this.selectedVereinDO.id);
   }
 
   public onSelectLiga(event: LigaDO): void {
     this.selectedLigaDO = event[0];
     console.log(this.selectedLigaDO);
-    console.log(this.selectedLigaDO.id);
     this.router.navigateByUrl('/ligatabelle/' + this.selectedLigaDO.id);
-    // this.router.navigateByUrl('/ligatabelle');
+    //this.router.navigateByUrl('/ligatabelle');
   }
 
   public getEmptyList(): RoleVersionedDataObject[] {
