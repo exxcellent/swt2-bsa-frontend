@@ -10,9 +10,11 @@ import {LigaDataProviderService} from '@verwaltung/services/liga-data-provider.s
 import {RegionDataProviderService} from '../../../verwaltung/services/region-data-provider.service';
 import {LigaDO} from '@verwaltung/types/liga-do.class';
 import {LigaDTO} from '@verwaltung/types/datatransfer/liga-dto.class';
+import {RegionDTO} from '@verwaltung/types/datatransfer/region-dto.class';
 import {VereinDTO} from '@verwaltung/types/datatransfer/verein-dto.class';
 import {RoleVersionedDataObject} from '@verwaltung/services/models/roles-versioned-data-object.class';
 import {Router} from '@angular/router';
+import {isNullOrUndefined} from '@shared/functions';
 // import {LigatabelleComponent} from '../../../ligatabelle/components/ligatabelle/ligatabelle.component';
 // import {VeranstaltungDO} from '@verwaltung/types/veranstaltung-do.class';
 
@@ -29,11 +31,16 @@ export class RegionenComponent implements OnInit {
 
   public config = REGIONEN_CONFIG;
   private regionen: RegionDO[];
-
+  public selectedDTOs: RegionDO[];
   public currentRegionDO: RegionDO;
 
   private selectedVereinDO: VereinDO;
   private selectedLigaDO: LigaDO;
+
+  public PLACEHOLDER_VAR = 'Bitte Region eingeben...';
+  private selectedRegionsId: number;
+  public loadingRegionen = true;
+  public multipleSelections = true;
 
   private ligen: LigaDTO[];
   private vereine: VereinDTO[];
@@ -50,6 +57,7 @@ export class RegionenComponent implements OnInit {
   ngOnInit() {
     this.getDataAndShowSunburst();
     this.currentRegionDO = new RegionDO();
+    this.loadRegionen();
   }
 
   convertDataToTree(currentRegion: RegionDO, allRegions: RegionDO[]): ChartNode {
@@ -115,9 +123,7 @@ export class RegionenComponent implements OnInit {
 
         myChart.width(window.innerWidth * chartDetailsSizeMultiplikator);
         myChart.height(window.innerHeight * chartDetailsSizeMultiplikator);
-        // }
         this.showDetails(node);
-
         })
       (this.myDiv.nativeElement);
 
@@ -144,13 +150,7 @@ export class RegionenComponent implements OnInit {
       this.regionDataProviderService.findById(node.id)
           .then((response: BogenligaResponse<RegionDO>) => {
               this.currentRegionDO = response.payload;
-              this.reloadVereineUndLigen();
-              const details: HTMLInputElement = document.querySelector('#detailsWrapper') as HTMLInputElement;
-              details.style.display = 'block';
-              const desc: HTMLInputElement = document.querySelector('#descriptionWrapper') as HTMLInputElement;
-              desc.style.display = 'none';
-              const desc1: HTMLInputElement = document.querySelector('#descriptionWrapperClose') as HTMLInputElement;
-              desc1.style.display = 'block';
+              this.loadDetails();
             }
           );
     } else {
@@ -221,6 +221,53 @@ export class RegionenComponent implements OnInit {
 
   public getEmptyList(): RoleVersionedDataObject[] {
     return [];
+  }
+
+  // gets used by regionen.component.html to show the selected Region-name
+  public getSelectedDTO(): string {
+    if (isNullOrUndefined(this.selectedDTOs)) {
+      return '';
+    } else {
+      console.log('Auswahllisten: selectedDTO = ' + JSON.stringify(this.selectedDTOs));
+      const names: string[] = [];
+
+      this.selectedDTOs.forEach((item) => {
+        names.push(item.regionName);
+      });
+
+      return names.join(', ');
+    }
+  }
+
+  // when a Region gets selected from the list
+  public onSelect($event: RegionDO[]): void {
+    this.selectedDTOs = [];
+    this.selectedDTOs = $event;
+    if (!!this.selectedDTOs && this.selectedDTOs.length > 0) {
+      this.selectedRegionsId = this.selectedDTOs[0].id;
+      this.currentRegionDO = this.selectedDTOs[0];
+      this.loadDetails();
+    }
+  }
+
+  // backend-call to get the list of regionen
+  private loadRegionen(): void {
+    this.regionen = [];
+    this.regionDataProviderService.findAll()
+        .then((response: BogenligaResponse<RegionDTO[]>) => {this.regionen = response.payload;  this.loadingRegionen = false; })
+        .catch((response: BogenligaResponse<RegionDTO[]>) => {this.regionen = response.payload; });
+
+  }
+
+  // Loads details for the selected region
+  private loadDetails(): void {
+    this.reloadVereineUndLigen();
+    const details: HTMLInputElement = document.querySelector('#detailsWrapper') as HTMLInputElement;
+    details.style.display = 'block';
+    const desc: HTMLInputElement = document.querySelector('#descriptionWrapper') as HTMLInputElement;
+    desc.style.display = 'none';
+    const desc1: HTMLInputElement = document.querySelector('#descriptionWrapperClose') as HTMLInputElement;
+    desc1.style.display = 'block';
   }
 
 }
