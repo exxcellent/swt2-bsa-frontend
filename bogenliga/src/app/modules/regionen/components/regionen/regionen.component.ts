@@ -223,22 +223,6 @@ export class RegionenComponent implements OnInit {
     return [];
   }
 
-  // gets used by regionen.component.html to show the selected Region-name
-  public getSelectedDTO(): string {
-    if (isNullOrUndefined(this.selectedDTOs)) {
-      return '';
-    } else {
-      console.log('Auswahllisten: selectedDTO = ' + JSON.stringify(this.selectedDTOs));
-      const names: string[] = [];
-
-      this.selectedDTOs.forEach((item) => {
-        names.push(item.regionName);
-      });
-
-      return names.join(', ');
-    }
-  }
-
   // when a Region gets selected from the list
   public onSelect($event: RegionDO[]): void {
     this.selectedDTOs = [];
